@@ -1,5 +1,7 @@
 # Stroke-Prediction-System
 뇌졸중 예방 시스템
+<img width="948" height="1248" alt="image" src="https://github.com/user-attachments/assets/38372bad-33e0-44b5-8e2d-5e89e20acb3d" />
+
 
 ## Use Case 
 Use Case (English Version) 
