@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/HealthForm.css'
 
-function HealthForm() {
+function HealthForm({ setUserResults }) {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     gender: 'Male',
     age: '',
@@ -15,7 +17,6 @@ function HealthForm() {
     smoking_status: 'never smoked'
   })
 
-  const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
@@ -85,12 +86,10 @@ function HealthForm() {
       const totalScore = calculateStrokeRisk(formData)
       const riskInfo = getRiskLevel(totalScore)
       
-      console.log('제출된 데이터:', formData)
-      console.log('총 위험도 점수:', totalScore)
-      console.log('위험 등급:', riskInfo)
-      
-      setResult({
-        success: true,
+      const resultData = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleString('ko-KR'),
+        formData: formData,
         totalScore: totalScore,
         riskLevel: riskInfo.level,
         stage: riskInfo.stage,
@@ -100,12 +99,22 @@ function HealthForm() {
           : riskInfo.level === 'Medium'
           ? '⚠️ 뇌졸중 중등위험군입니다. 건강 관리가 필요합니다.'
           : '✓ 뇌졸중 저위험군입니다. 건강 습관을 유지하세요.'
-      })
+      }
+
+      // 대시보드용 데이터 저장
+      setUserResults(prev => [resultData, ...prev])
+      
+      // 세션 스토리지에 현재 결과 저장
+      sessionStorage.setItem('currentResult', JSON.stringify(resultData))
+      
+      console.log('제출된 데이터:', formData)
+      console.log('총 위험도 점수:', totalScore)
+      console.log('위험 등급:', riskInfo)
+      
+      // 결과 페이지로 이동
+      navigate('/result')
     } catch (error) {
-      setResult({
-        success: false,
-        message: error.message || '예측 중 오류가 발생했습니다.'
-      })
+      alert(error.message || '예측 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -315,34 +324,6 @@ function HealthForm() {
           </button>
         </div>
       </form>
-
-      {result && (
-        <div className={`result-card ${result.success ? result.color || 'success' : 'error'}`}>
-          <h3>📊 예측 결과</h3>
-          {result.success ? (
-            <>
-              <div className="risk-score">
-                <div className="score-info">
-                  <span className="label">위험도 등급:</span>
-                  <span className={`level-badge ${result.color}`}>
-                    {result.riskLevel} ({result.stage})
-                  </span>
-                </div>
-                <div className="score-points">
-                  <span className="label">총 점수:</span>
-                  <span className="points">{result.totalScore}점</span>
-                </div>
-              </div>
-              <div className="score-range">
-                <p>0–4점: Low(1단계) | 5–8점: Medium(2단계) | ≥9점: High(3단계)</p>
-              </div>
-              <p className="message">{result.message}</p>
-            </>
-          ) : (
-            <p className="error-message">{result.message}</p>
-          )}
-        </div>
-      )}
     </div>
   )
 }
