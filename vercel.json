@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd vite-latest && npm run build",
+  "outputDirectory": "vite-latest/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
