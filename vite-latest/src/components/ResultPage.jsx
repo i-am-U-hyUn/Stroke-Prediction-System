@@ -2,15 +2,21 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/ResultPage.css'
 
-function ResultPage() {
+function ResultPage({ currentUser }) {
   const navigate = useNavigate()
   const [result, setResult] = useState(null)
 
   useEffect(() => {
     const resultData = sessionStorage.getItem('currentResult')
+    console.log('=== ResultPage 로드 시점 ===')
+    console.log('sessionStorage에서 가져온 데이터:', resultData)
     if (resultData) {
-      setResult(JSON.parse(resultData))
+      const parsed = JSON.parse(resultData)
+      console.log('파싱된 결과:', parsed)
+      console.log('formData 확인:', parsed.formData)
+      setResult(parsed)
     } else {
+      console.log('결과 데이터가 없어서 홈으로 이동')
       // 결과 데이터가 없으면 입력 페이지로 돌아가기
       navigate('/')
     }
@@ -34,9 +40,14 @@ function ResultPage() {
       alert('공유할 보호자/의사 이메일을 입력하세요.')
       return
     }
+    if (!currentUser || currentUser.role !== 'patient') {
+      alert('공유 권한이 없습니다. 환자 계정으로 로그인해 주세요.')
+      return
+    }
     const all = JSON.parse(localStorage.getItem('shared_records') || '[]')
     const record = {
       id: Date.now(),
+      patientEmail: currentUser?.email || 'unknown',
       recipientEmail: shareEmail,
       recipientRole: shareRole,
       timestamp: result.timestamp,
@@ -103,11 +114,23 @@ function ResultPage() {
           <div className="details-grid">
             <div className="detail-item">
               <label>성별</label>
-              <value>{result.formData.gender === 'Male' ? '남성' : '여성'}</value>
+              <value>
+                {result.formData.gender === 'Male' && '남성'}
+                {result.formData.gender === 'Female' && '여성'}
+                {result.formData.gender === 'Other' && '기타'}
+              </value>
             </div>
             <div className="detail-item">
               <label>나이</label>
               <value>{result.formData.age}세</value>
+            </div>
+            <div className="detail-item">
+              <label>결혼 여부</label>
+              <value>{result.formData.ever_married === 'Yes' ? '예' : '아니오'}</value>
+            </div>
+            <div className="detail-item">
+              <label>거주 지역</label>
+              <value>{result.formData.residence_type === 'Urban' ? '도시' : '시골'}</value>
             </div>
             <div className="detail-item">
               <label>평균 혈당 수치</label>
@@ -190,12 +213,15 @@ function ResultPage() {
 
       <div className="result-actions">
         <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap'}}>
-          <input placeholder="공유 대상 이메일 입력" value={shareEmail} onChange={e=>setShareEmail(e.target.value)} />
-          <select value={shareRole} onChange={e=>setShareRole(e.target.value)}>
+          <input placeholder="공유 대상 이메일 입력" value={shareEmail} onChange={e=>setShareEmail(e.target.value)} disabled={!currentUser || currentUser.role !== 'patient'} />
+          <select value={shareRole} onChange={e=>setShareRole(e.target.value)} disabled={!currentUser || currentUser.role !== 'patient'}>
             <option value="caregiver">보호자</option>
             <option value="doctor">의사</option>
           </select>
-          <button className="btn" onClick={handleShare}>공유</button>
+          <button className="btn" onClick={handleShare} disabled={!currentUser || currentUser.role !== 'patient'}>공유</button>
+          {(!currentUser || currentUser.role !== 'patient') && (
+            <small style={{color:'#6b7280',marginLeft:'0.5rem'}}>공유는 환자 계정으로 로그인해야 가능합니다.</small>
+          )}
         </div>
         <button className="btn btn-primary" onClick={handleNewAssessment}>
           새로운 평가

@@ -1,15 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import '../styles/Dashboard.css'
 
-function Doctor() {
+function Doctor({ currentUser }) {
   const [email, setEmail] = useState('')
   const [records, setRecords] = useState([])
 
-  const loadRecords = () => {
+  const loadRecords = (queryEmail) => {
     const all = JSON.parse(localStorage.getItem('shared_records') || '[]')
-    const filtered = all.filter(r => r.recipientRole === 'doctor' && r.recipientEmail === email)
+    const filtered = all.filter(r => r.recipientRole === 'doctor' && r.recipientEmail === queryEmail)
     setRecords(filtered)
   }
+
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'doctor') {
+      setEmail(currentUser.email)
+      loadRecords(currentUser.email)
+    }
+  }, [currentUser])
 
   return (
     <div className="dashboard-container">
@@ -21,7 +28,7 @@ function Doctor() {
       <div className="result-details">
         <div style={{display:'flex',gap:'1rem',alignItems:'center',marginBottom:'1rem'}}>
           <input placeholder="의사 이메일 입력" value={email} onChange={e=>setEmail(e.target.value)} />
-          <button className="btn btn-primary" onClick={loadRecords}>조회</button>
+          <button className="btn btn-primary" onClick={() => loadRecords(email)}>조회</button>
         </div>
 
         {records.length === 0 ? (

@@ -1,6 +1,6 @@
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #ffffff;
   padding: 0;
 }
 
@@ -47,7 +47,7 @@
 }
 
 .nav-link {
-  color: #6b7280;
+  color: #1a1a1a;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;

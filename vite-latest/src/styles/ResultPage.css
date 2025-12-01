@@ -1,7 +1,9 @@
 .result-page-container {
   max-width: 1000px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: #ffffff;
+  min-height: 100vh;
 }
 
 .result-header {
@@ -11,12 +13,12 @@
 
 .result-header h1 {
   font-size: 2rem;
-  color: #1f2937;
+  color: #1a1a1a;
   margin-bottom: 0.5rem;
 }
 
 .assessment-time {
-  color: #6b7280;
+  color: #1a1a1a;
   font-size: 0.95rem;
 }
 
@@ -275,6 +277,19 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  background-color: #667eea;
+  color: white;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #5568d3;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .btn-primary {
@@ -290,6 +305,32 @@
 .btn-secondary {
   background-color: #e5e7eb;
   color: #1f2937;
+}
+
+.result-actions input,
+.result-actions select {
+  padding: 0.75rem 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  color: #1a1a1a;
+  transition: all 0.2s;
+}
+
+.result-actions input:focus,
+.result-actions select:focus {
+  outline: none;
+  border-color: #667eea;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.result-actions input:disabled,
+.result-actions select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .btn-secondary:hover {

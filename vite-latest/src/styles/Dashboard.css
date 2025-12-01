@@ -1,7 +1,9 @@
 .dashboard-container {
   max-width: 1400px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: #ffffff;
+  min-height: 100vh;
 }
 
 .dashboard-header {
@@ -13,12 +15,12 @@
 
 .dashboard-header h1 {
   font-size: 2rem;
-  color: #1f2937;
+  color: #1a1a1a;
   margin-bottom: 0.5rem;
 }
 
 .dashboard-header p {
-  color: #6b7280;
+  color: #1a1a1a;
   font-size: 1rem;
 }
 

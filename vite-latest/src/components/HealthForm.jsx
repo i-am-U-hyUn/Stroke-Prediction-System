@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/HealthForm.css'
 
-function HealthForm({ setUserResults }) {
+function HealthForm({ setUserResults, currentUser }) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     gender: 'Male',
@@ -72,6 +72,13 @@ function HealthForm({ setUserResults }) {
     e.preventDefault()
     setLoading(true)
     
+    // 접근 제어: 환자만 제출 가능
+    const canSubmit = currentUser && currentUser.role === 'patient'
+    if (!canSubmit) {
+      alert('예측을 실행하려면 환자 계정으로 로그인하세요.')
+      setLoading(false)
+      return
+    }
     try {
       // 입력 데이터 검증
       const age = parseFloat(formData.age)
@@ -86,10 +93,25 @@ function HealthForm({ setUserResults }) {
       const totalScore = calculateStrokeRisk(formData)
       const riskInfo = getRiskLevel(totalScore)
       
+      // formData의 깊은 복사본 생성 (참조가 아닌 값 복사)
+      const formDataCopy = {
+        gender: formData.gender,
+        age: formData.age,
+        hypertension: formData.hypertension,
+        heart_disease: formData.heart_disease,
+        ever_married: formData.ever_married,
+        work_type: formData.work_type,
+        residence_type: formData.residence_type,
+        avg_glucose_level: formData.avg_glucose_level,
+        bmi: formData.bmi,
+        smoking_status: formData.smoking_status
+      }
+      
       const resultData = {
         id: Date.now(),
         timestamp: new Date().toLocaleString('ko-KR'),
-        formData: formData,
+        patientEmail: currentUser?.email || null,
+        formData: formDataCopy,
         totalScore: totalScore,
         riskLevel: riskInfo.level,
         stage: riskInfo.stage,
@@ -100,16 +122,28 @@ function HealthForm({ setUserResults }) {
           ? '⚠️ 뇌졸중 중등위험군입니다. 건강 관리가 필요합니다.'
           : '✓ 뇌졸중 저위험군입니다. 건강 습관을 유지하세요.'
       }
+      
+      console.log('=== 제출 시점 데이터 확인 ===')
+      console.log('입력된 formData:', formDataCopy)
+      console.log('저장될 resultData:', resultData)
 
       // 대시보드용 데이터 저장
       setUserResults(prev => [resultData, ...prev])
+      // 전체 결과를 localStorage에도 저장 (영구 보관)
+      try {
+        const all = JSON.parse(localStorage.getItem('allResults') || '[]')
+        all.unshift(resultData)
+        localStorage.setItem('allResults', JSON.stringify(all))
+      } catch (e) {
+        console.error('localStorage 저장 실패', e)
+      }
       
       // 세션 스토리지에 현재 결과 저장
       sessionStorage.setItem('currentResult', JSON.stringify(resultData))
       
-      console.log('제출된 데이터:', formData)
       console.log('총 위험도 점수:', totalScore)
       console.log('위험 등급:', riskInfo)
+      console.log('sessionStorage 저장 완료')
       
       // 결과 페이지로 이동
       navigate('/result')
@@ -311,7 +345,7 @@ function HealthForm({ setUserResults }) {
           <button 
             type="submit" 
             className="btn btn-primary"
-            disabled={loading}
+            disabled={loading || !(currentUser && currentUser.role === 'patient')}
           >
             {loading ? '예측 중...' : '예측 분석'}
           </button>
@@ -323,6 +357,11 @@ function HealthForm({ setUserResults }) {
             초기화
           </button>
         </div>
+        {!(currentUser && currentUser.role === 'patient') && (
+          <div style={{marginTop:'0.5rem',color:'#6b7280'}}>
+            <strong>알림:</strong> 예측은 <em>환자</em> 계정으로 로그인해야 실행할 수 있습니다. <a href="/login">로그인</a>
+          </div>
+        )}
       </form>
     </div>
   )
