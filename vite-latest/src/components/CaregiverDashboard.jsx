@@ -6,6 +6,7 @@ function CaregiverDashboard({ currentUser }) {
   const navigate = useNavigate()
   const [sharedRecords, setSharedRecords] = useState([])
   const [messages, setMessages] = useState([])
+  const [selectedRecord, setSelectedRecord] = useState(null)
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== 'caregiver') {
@@ -57,9 +58,6 @@ function CaregiverDashboard({ currentUser }) {
           <button className="nav-item active" onClick={() => navigate('/caregiver-dashboard')}>
             <span>대시보드</span>
           </button>
-          <button className="nav-item" onClick={() => navigate('/caregiver')}>
-            <span>환자 목록</span>
-          </button>
           <button className="nav-item" onClick={() => navigate('/messages')}>
             <span>메시지</span>
           </button>
@@ -78,58 +76,59 @@ function CaregiverDashboard({ currentUser }) {
 
         <div className="dashboard-grid">
           <div className="dashboard-card stats-card">
-            <h3>모니터링 현황</h3>
+            <h3>알림 현황</h3>
             <div className="stats-grid">
               <div className="stat-item">
-                <div className="stat-value">{patientSummaries.length}</div>
-                <div className="stat-label">담당 환자 수</div>
+                <div className="stat-value">{sharedRecords.length}</div>
+                <div className="stat-label">공유받은 기록</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{sharedRecords.length}</div>
-                <div className="stat-label">총 기록 수</div>
+                <div className="stat-value">{messages.filter(m => !m.read && m.to === currentUser.email).length}</div>
+                <div className="stat-label">읽지 않은 메시지</div>
               </div>
               <div className="stat-item">
                 <div className="stat-value">
-                  {patientSummaries.filter(p => p.riskLevel === 'High').length}
+                  {sharedRecords.filter(p => p.riskLevel === 'High').length}
                 </div>
-                <div className="stat-label">고위험 환자</div>
+                <div className="stat-label">고위험 알림</div>
               </div>
             </div>
           </div>
 
           <div className="dashboard-card wide-card">
-            <h3>환자 상태 요약</h3>
-            {patientSummaries.length === 0 ? (
+            <h3>최근 공유받은 건강 기록</h3>
+            {sharedRecords.length === 0 ? (
               <p className="empty-state">아직 공유된 환자 기록이 없습니다</p>
             ) : (
-              <div className="patient-grid">
-                {patientSummaries.map(record => (
-                  <div key={record.id} className="patient-card">
-                    <div className="patient-header">
-                      <div className="patient-email">{record.patientEmail}</div>
+              <div className="records-list">
+                {sharedRecords.slice(0, 5).map(record => (
+                  <div 
+                    key={record.id} 
+                    className="record-item clickable"
+                    onClick={() => setSelectedRecord(record)}
+                    style={{cursor: 'pointer'}}
+                  >
+                    <div className="record-header">
+                      <span className="record-time">{record.timestamp}</span>
                       <span className={`badge-small ${record.color}`}>{record.riskLevel}</span>
                     </div>
-                    <div className="patient-info">
+                    <div className="record-info">
                       <div className="info-row">
                         <span>위험도 점수:</span>
                         <strong>{record.totalScore}점</strong>
                       </div>
                       <div className="info-row">
-                        <span>최근 평가:</span>
-                        <span>{record.timestamp}</span>
+                        <span>환자 상태:</span>
+                        <span>{record.message}</span>
                       </div>
-                      <div className="info-row">
-                        <span>연령:</span>
-                        <span>{record.formData?.age || 'N/A'}세</span>
-                      </div>
+                    </div>
+                    <div style={{marginTop: '0.5rem', fontSize: '0.85rem', color: '#667eea'}}>
+                      클릭하여 상세보기 →
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            <button className="link-btn" onClick={() => navigate('/caregiver')}>
-              상세 내역 보기
-            </button>
           </div>
 
           <div className="dashboard-card">
@@ -167,6 +166,124 @@ function CaregiverDashboard({ currentUser }) {
           </div>
         </div>
       </div>
+
+      {/* 상세 보기 모달 */}
+      {selectedRecord && (
+        <div className="modal-overlay" onClick={() => setSelectedRecord(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>건강 기록 상세 정보</h2>
+              <button className="modal-close" onClick={() => setSelectedRecord(null)}>✕</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3>평가 결과</h3>
+                <div className="result-summary">
+                  <div className={`risk-badge ${selectedRecord.color}`}>
+                    {selectedRecord.riskLevel} - {selectedRecord.stage}
+                  </div>
+                  <div className="score-info">
+                    <span className="score-label">위험도 점수</span>
+                    <span className="score-value">{selectedRecord.totalScore}점</span>
+                  </div>
+                  <p className="assessment-time">평가 시간: {selectedRecord.timestamp}</p>
+                </div>
+                <div className="status-message">
+                  {selectedRecord.message}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>건강 정보</h3>
+                <div className="health-data-grid">
+                  <div className="health-item">
+                    <label>성별</label>
+                    <value>
+                      {selectedRecord.formData?.gender === 'Male' && '남성'}
+                      {selectedRecord.formData?.gender === 'Female' && '여성'}
+                      {selectedRecord.formData?.gender === 'Other' && '기타'}
+                    </value>
+                  </div>
+                  <div className="health-item">
+                    <label>나이</label>
+                    <value>{selectedRecord.formData?.age || 'N/A'}세</value>
+                  </div>
+                  <div className="health-item">
+                    <label>평균 혈당</label>
+                    <value>{selectedRecord.formData?.avg_glucose_level || 'N/A'} mg/dL</value>
+                  </div>
+                  <div className="health-item">
+                    <label>BMI</label>
+                    <value>{selectedRecord.formData?.bmi || 'N/A'}</value>
+                  </div>
+                  <div className="health-item">
+                    <label>고혈압</label>
+                    <value>{selectedRecord.formData?.hypertension === '1' ? '있음' : '없음'}</value>
+                  </div>
+                  <div className="health-item">
+                    <label>심장질환</label>
+                    <value>{selectedRecord.formData?.heart_disease === '1' ? '있음' : '없음'}</value>
+                  </div>
+                  <div className="health-item">
+                    <label>흡연 상태</label>
+                    <value>
+                      {selectedRecord.formData?.smoking_status === 'never smoked' && '비흡연'}
+                      {selectedRecord.formData?.smoking_status === 'formerly smoked' && '과거 흡연'}
+                      {selectedRecord.formData?.smoking_status === 'smokes' && '현재 흡연'}
+                      {selectedRecord.formData?.smoking_status === 'Unknown' && '알 수 없음'}
+                    </value>
+                  </div>
+                  <div className="health-item">
+                    <label>직업</label>
+                    <value>
+                      {selectedRecord.formData?.work_type === 'Private' && '민간 회사'}
+                      {selectedRecord.formData?.work_type === 'Govt_job' && '정부 기관'}
+                      {selectedRecord.formData?.work_type === 'Self-employed' && '자영업'}
+                      {selectedRecord.formData?.work_type === 'Never_worked' && '미취업'}
+                      {selectedRecord.formData?.work_type === 'Children' && '어린이'}
+                    </value>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>권장사항</h3>
+                {selectedRecord.riskLevel === 'High' && (
+                  <ul className="recommendations-list high">
+                    <li>🏥 즉시 의료 전문가 상담이 필요합니다</li>
+                    <li>혈압과 혈당을 정기적으로 모니터링하세요</li>
+                    <li>처방된 약을 정확히 복용하세요</li>
+                    <li>스트레스 관리와 충분한 수면을 취하세요</li>
+                  </ul>
+                )}
+                {selectedRecord.riskLevel === 'Medium' && (
+                  <ul className="recommendations-list medium">
+                    <li>⚠️ 정기적인 건강 관리가 필요합니다</li>
+                    <li>3개월마다 의료 전문가와 상담하세요</li>
+                    <li>주 3-4회 중등도 운동을 하세요</li>
+                    <li>염분 섭취를 줄이세요</li>
+                  </ul>
+                )}
+                {selectedRecord.riskLevel === 'Low' && (
+                  <ul className="recommendations-list low">
+                    <li>✓ 현재 건강 상태를 유지하세요</li>
+                    <li>3-6개월마다 정기적으로 재평가하세요</li>
+                    <li>규칙적인 운동을 계속하세요</li>
+                    <li>건강한 식단 습관을 유지하세요</li>
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setSelectedRecord(null)}>
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
