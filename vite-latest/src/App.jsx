@@ -4,6 +4,8 @@ import './App.css'
 import HealthForm from './components/HealthForm'
 import ResultPage from './components/ResultPage'
 import Dashboard from './components/Dashboard'
+import Doctor from './components/Doctor'
+import Caregiver from './components/Caregiver'
 
 function App() {
   const [userResults, setUserResults] = useState([])
@@ -23,6 +25,12 @@ function App() {
               <li className="nav-item">
                 <Link to="/dashboard" className="nav-link">대시보드</Link>
               </li>
+              <li className="nav-item">
+                <Link to="/caregiver" className="nav-link">보호자 보기</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/doctor" className="nav-link">의사 보기</Link>
+              </li>
             </ul>
           </div>
         </nav>
@@ -40,6 +48,8 @@ function App() {
             path="/dashboard" 
             element={<Dashboard userResults={userResults} />} 
           />
+          <Route path="/caregiver" element={<Caregiver />} />
+          <Route path="/doctor" element={<Doctor />} />
         </Routes>
       </div>
     </Router>

@@ -25,6 +25,34 @@ function ResultPage() {
     navigate('/dashboard')
   }
 
+  // 공유 로직: localStorage에 저장 (간단 구현)
+  const [shareEmail, setShareEmail] = useState('')
+  const [shareRole, setShareRole] = useState('caregiver')
+
+  const handleShare = () => {
+    if (!shareEmail) {
+      alert('공유할 보호자/의사 이메일을 입력하세요.')
+      return
+    }
+    const all = JSON.parse(localStorage.getItem('shared_records') || '[]')
+    const record = {
+      id: Date.now(),
+      recipientEmail: shareEmail,
+      recipientRole: shareRole,
+      timestamp: result.timestamp,
+      totalScore: result.totalScore,
+      riskLevel: result.riskLevel,
+      stage: result.stage,
+      color: result.color,
+      message: result.message,
+      formData: result.formData
+    }
+    all.push(record)
+    localStorage.setItem('shared_records', JSON.stringify(all))
+    alert(`${shareRole === 'doctor' ? '의사' : '보호자'}에게 공유되었습니다: ${shareEmail}`)
+    setShareEmail('')
+  }
+
   if (!result) {
     return <div>로딩 중...</div>
   }
@@ -161,6 +189,14 @@ function ResultPage() {
       </div>
 
       <div className="result-actions">
+        <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap'}}>
+          <input placeholder="공유 대상 이메일 입력" value={shareEmail} onChange={e=>setShareEmail(e.target.value)} />
+          <select value={shareRole} onChange={e=>setShareRole(e.target.value)}>
+            <option value="caregiver">보호자</option>
+            <option value="doctor">의사</option>
+          </select>
+          <button className="btn" onClick={handleShare}>공유</button>
+        </div>
         <button className="btn btn-primary" onClick={handleNewAssessment}>
           새로운 평가
         </button>
