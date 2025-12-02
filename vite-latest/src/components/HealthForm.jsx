@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/HealthForm.css'
+import api from '../api'
 
 function HealthForm({ setUserResults, currentUser }) {
   const navigate = useNavigate()
@@ -89,11 +90,24 @@ function HealthForm({ setUserResults, currentUser }) {
         throw new Error('모든 필드를 올바르게 입력해주세요.')
       }
 
-      // 점수 계산
-      const totalScore = calculateStrokeRisk(formData)
-      const riskInfo = getRiskLevel(totalScore)
+      // 백엔드 API 호출하여 위험도 평가
+      const healthDataRequest = {
+        age: parseInt(formData.age),
+        gender: formData.gender,
+        hypertension: parseInt(formData.hypertension),
+        heart_disease: parseInt(formData.heart_disease),
+        ever_married: formData.ever_married,
+        work_type: formData.work_type,
+        Residence_type: formData.residence_type,
+        avg_glucose_level: parseFloat(formData.avg_glucose_level),
+        bmi: parseFloat(formData.bmi),
+        smoking_status: formData.smoking_status
+      }
+
+      // 백엔드 API 호출
+      const assessment = await api.submitHealthData(healthDataRequest)
       
-      // formData의 깊은 복사본 생성 (참조가 아닌 값 복사)
+      // formData의 깊은 복사본 생성
       const formDataCopy = {
         gender: formData.gender,
         age: formData.age,
@@ -107,24 +121,26 @@ function HealthForm({ setUserResults, currentUser }) {
         smoking_status: formData.smoking_status
       }
       
+      // 백엔드 응답을 프론트엔드 형식으로 변환
       const resultData = {
         id: Date.now(),
         timestamp: new Date().toLocaleString('ko-KR'),
         patientEmail: currentUser?.email || null,
         formData: formDataCopy,
-        totalScore: totalScore,
-        riskLevel: riskInfo.level,
-        stage: riskInfo.stage,
-        color: riskInfo.color,
-        message: riskInfo.level === 'High' 
+        totalScore: assessment.score,
+        riskLevel: assessment.risk_level,
+        stage: assessment.risk_level === 'High' ? '3단계' : assessment.risk_level === 'Medium' ? '2단계' : '1단계',
+        color: assessment.risk_color,
+        recommendations: assessment.recommendations,
+        message: assessment.risk_level === 'High' 
           ? '⚠️ 뇌졸중 고위험군입니다. 의료 전문가와 상담하세요.'
-          : riskInfo.level === 'Medium'
+          : assessment.risk_level === 'Medium'
           ? '⚠️ 뇌졸중 중등위험군입니다. 건강 관리가 필요합니다.'
           : '✓ 뇌졸중 저위험군입니다. 건강 습관을 유지하세요.'
       }
       
-      console.log('=== 제출 시점 데이터 확인 ===')
-      console.log('입력된 formData:', formDataCopy)
+      console.log('=== 백엔드 응답 ===')
+      console.log('Assessment:', assessment)
       console.log('저장될 resultData:', resultData)
 
       // 대시보드용 데이터 저장
@@ -141,8 +157,8 @@ function HealthForm({ setUserResults, currentUser }) {
       // 세션 스토리지에 현재 결과 저장
       sessionStorage.setItem('currentResult', JSON.stringify(resultData))
       
-      console.log('총 위험도 점수:', totalScore)
-      console.log('위험 등급:', riskInfo)
+      console.log('총 위험도 점수:', assessment.score)
+      console.log('위험 등급:', assessment.risk_level)
       console.log('sessionStorage 저장 완료')
       
       // 결과 페이지로 이동

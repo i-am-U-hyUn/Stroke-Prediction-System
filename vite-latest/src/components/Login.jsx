@@ -1,42 +1,51 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
+import api from '../api'
 
 function Login({ setCurrentUser }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       alert('이메일과 비밀번호를 입력하세요')
       return
     }
 
-    // 데모용 계정 (실제로는 백엔드 API 연동)
-    const demoAccounts = [
-      { email: 'patient@test.com', password: 'patient', role: 'patient', name: '김환자' },
-      { email: 'caregiver@test.com', password: 'caregiver', role: 'caregiver', name: '이보호' },
-      { email: 'doctor@test.com', password: 'doctor', role: 'doctor', name: '박의사' }
-    ]
+    setLoading(true)
 
-    const user = demoAccounts.find(u => u.email === email && u.password === password)
-    
-    if (!user) {
-      alert('로그인 실패: 이메일 또는 비밀번호가 잘못되었습니다')
-      return
-    }
+    try {
+      // 백엔드 API 로그인
+      const response = await api.login(email, password)
+      
+      const user = {
+        user_id: response.user_id,
+        email: response.email,
+        name: response.name,
+        role: response.role
+      }
 
-    sessionStorage.setItem('currentUser', JSON.stringify(user))
-    setCurrentUser(user)
-    
-    // 역할별 대시보드로 이동
-    if (user.role === 'patient') {
-      navigate('/patient-dashboard')
-    } else if (user.role === 'caregiver') {
-      navigate('/caregiver-dashboard')
-    } else if (user.role === 'doctor') {
-      navigate('/doctor-dashboard')
+      sessionStorage.setItem('currentUser', JSON.stringify(user))
+      setCurrentUser(user)
+      
+      // 역할별 대시보드로 이동
+      if (user.role === 'patient') {
+        navigate('/patient-dashboard')
+      } else if (user.role === 'caregiver') {
+        navigate('/caregiver-dashboard')
+      } else if (user.role === 'doctor') {
+        navigate('/doctor-dashboard')
+      } else {
+        navigate('/')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('로그인 실패: ' + error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -78,8 +87,8 @@ function Login({ setCurrentUser }) {
             />
           </div>
 
-          <button className="btn-login" onClick={handleLogin}>
-            로그인
+          <button className="btn-login" onClick={handleLogin} disabled={loading}>
+            {loading ? '로그인 중...' : '로그인'}
           </button>
 
           <div className="demo-accounts">

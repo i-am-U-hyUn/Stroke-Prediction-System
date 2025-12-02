@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>뇌졸중 예방 시스템 API 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status.online {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status.offline {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 뇌졸중 예방 시스템 API 테스트</h1>
+        
+        <div class="status" id="serverStatus">
+            <span>서버 상태 확인 중...</span>
+        </div>
+
+        <!-- 로그인 -->
+        <div class="card">
+            <h2>1. 로그인 (Login)</h2>
+            <div class="grid">
+                <div class="input-group">
+                    <label>이메일</label>
+                    <select id="loginEmail">
+                        <option value="patient@test.com">환자 (patient@test.com)</option>
+                        <option value="caregiver@test.com">보호자 (caregiver@test.com)</option>
+                        <option value="doctor@test.com">의사 (doctor@test.com)</option>
+                        <option value="admin@test.com">관리자 (admin@test.com)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="loginPassword" value="patient">
+                </div>
+            </div>
+            <button onclick="testLogin()">로그인 테스트</button>
+            <div id="loginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 건강 데이터 제출 -->
+        <div class="card">
+            <h2>2. 건강 데이터 제출 및 위험도 평가</h2>
+            <div class="grid">
+                <div class="input-group">
+                    <label>나이</label>
+                    <input type="number" id="age" value="65">
+                </div>
+                <div class="input-group">
+                    <label>성별</label>
+                    <select id="gender">
+                        <option value="Male">남성</option>
+                        <option value="Female">여성</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>평균 혈당 (mg/dL)</label>
+                    <input type="number" id="glucose" value="150">
+                </div>
+                <div class="input-group">
+                    <label>BMI</label>
+                    <input type="number" id="bmi" value="28.5" step="0.1">
+                </div>
+            </div>
+            <button onclick="testHealthData()">건강 데이터 제출</button>
+            <div id="healthResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- FAST 검사 -->
+        <div class="card">
+            <h2>3. FAST 검사 (응급 검사)</h2>
+            <div class="grid">
+                <label><input type="checkbox" id="face"> 얼굴 비대칭 (Face)</label>
+                <label><input type="checkbox" id="arms"> 팔 약화 (Arms)</label>
+                <label><input type="checkbox" id="speech"> 언어 장애 (Speech)</label>
+            </div>
+            <button onclick="testFASTTest()">FAST 검사 수행</button>
+            <div id="fastResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 대시보드 -->
+        <div class="card">
+            <h2>4. 대시보드 조회</h2>
+            <button onclick="testDashboard()">대시보드 데이터 조회</button>
+            <div id="dashboardResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- API 문서 링크 -->
+        <div class="card">
+            <h2>📚 API 문서</h2>
+            <p>전체 API 문서는 Swagger UI에서 확인할 수 있습니다:</p>
+            <a href="http://localhost:8000/docs" target="_blank">
+                <button>API 문서 열기 (Swagger UI)</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let sessionId = null;
+
+        // 서버 상태 확인
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const data = await response.json();
+                document.getElementById('serverStatus').innerHTML = `
+                    <span class="online">✅ 서버 정상 작동 중</span><br>
+                    <small>사용자: ${data.users_count}명 | 세션: ${data.sessions_count}개</small>
+                `;
+                document.getElementById('serverStatus').className = 'status online';
+            } catch (error) {
+                document.getElementById('serverStatus').innerHTML = `
+                    <span class="offline">❌ 서버 연결 실패</span><br>
+                    <small>백엔드 서버가 실행되지 않았습니다.</small>
+                `;
+                document.getElementById('serverStatus').className = 'status offline';
+            }
+        }
+
+        // 로그인 테스트
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // 비밀번호 자동 업데이트
+            const passwordMap = {
+                'patient@test.com': 'patient',
+                'caregiver@test.com': 'caregiver',
+                'doctor@test.com': 'doctor',
+                'admin@test.com': 'admin'
+            };
+            document.getElementById('loginPassword').value = passwordMap[email];
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password: passwordMap[email]})
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('loginResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    sessionId = data.session_id;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('loginResult').style.display = 'block';
+                document.getElementById('loginResult').className = 'result error';
+                document.getElementById('loginResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // 건강 데이터 제출
+        async function testHealthData() {
+            if (!sessionId) {
+                alert('먼저 로그인하세요!');
+                return;
+            }
+            
+            const healthData = {
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                hypertension: 1,
+                heart_disease: 0,
+                ever_married: 'Yes',
+                work_type: 'Private',
+                Residence_type: 'Urban',
+                avg_glucose_level: parseFloat(document.getElementById('glucose').value),
+                bmi: parseFloat(document.getElementById('bmi').value),
+                smoking_status: 'formerly smoked'
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/health-data?session_id=${sessionId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(healthData)
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('healthResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('healthResult').style.display = 'block';
+                document.getElementById('healthResult').className = 'result error';
+                document.getElementById('healthResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // FAST 검사
+        async function testFASTTest() {
+            if (!sessionId) {
+                alert('먼저 로그인하세요!');
+                return;
+            }
+            
+            const testData = {
+                face_asymmetry: document.getElementById('face').checked,
+                arm_weakness: document.getElementById('arms').checked,
+                speech_difficulty: document.getElementById('speech').checked
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/fast-test?session_id=${sessionId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('fastResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    resultDiv.className = data.is_emergency ? 'result error' : 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('fastResult').style.display = 'block';
+                document.getElementById('fastResult').className = 'result error';
+                document.getElementById('fastResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // 대시보드 조회
+        async function testDashboard() {
+            if (!sessionId) {
+                alert('먼저 로그인하세요!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard?session_id=${sessionId}`);
+                const data = await response.json();
+                const resultDiv = document.getElementById('dashboardResult');
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('dashboardResult').style.display = 'block';
+                document.getElementById('dashboardResult').className = 'result error';
+                document.getElementById('dashboardResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // 페이지 로드 시 서버 상태 확인
+        checkServerStatus();
+        setInterval(checkServerStatus, 10000); // 10초마다 상태 확인
+    </script>
+</body>
+</html>
