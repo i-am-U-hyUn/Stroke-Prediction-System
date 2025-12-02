@@ -1,21 +1,78 @@
 # Stroke-Prediction-System
 뇌졸중 예방 시스템
+
+https://github.com/user-attachments/assets/af564078-e6a2-4144-bcd1-44428f596372
+
+---
+
+## 🚀 1. Backend Development (Python / FastAPI)
+
+### ✔ 객체 지향 설계 기반 클래스 구조 설계 및 구현
+
+* `models.py` 전체 505줄 규모
+* **User 추상 클래스**를 기반으로
+
+  * Patient
+  * Caregiver
+  * Doctor
+  * Administrator
+    4가지 역할별 세부 클래스를 **상속 구조로 구현**
+* **추상화, 다형성, 캡슐화** 등 OOP 원칙을 프로젝트 전반에 적용
+* 유지보수가 용이하고 역할 기반 확장 가능한 구조 확립
+
+---
+
+### ✔ 서비스 레이어 비즈니스 로직 개발
+
+`services.py` (451줄)
+
+* **RiskCalculator**: 건강 데이터 기반 뇌졸중 위험도 계산 알고리즘 개발
+
+  * 가중치 기반 점수 계산 로직 설계
+* **DataAnalyzer**: FAST 테스트 및 건강 데이터 분석 기능 구현
+* **NotificationService**, **SharingService**, **MessageService** 등 사용자 간 커뮤니케이션 및 공유 기능 개발
+* 복잡한 비즈니스 로직을 컨트롤러(API)와 분리하여 **MVC 아키텍처의 서비스 레이어 구조** 완성
+
+---
+
+### ✔ RESTful API 서버 설계 및 구현
+
+`api.py` (462줄)
+
+* FastAPI 기반 백엔드 API 20개 이상 개발
+
+  * 인증/로그인
+  * 건강 데이터 제출 API
+  * FAST 테스트 결과 처리
+  * 역할 기반 대시보드 데이터 제공
+  * 메시지/공유 기능
+* CORS 설정, 정적 파일 서빙 등 실제 서비스 배포 수준 세팅
+* Request/Response 모델 구조화로 API 사용성을 향상
+
+---
+
+## 🎨 2. Frontend Development (React / Vite)
+
+### ✔ UI 컴포넌트 개발
+
+총 **13개의 React 컴포넌트** 개발
+
+* Login, HealthForm, ResultPage, Dashboard 등 핵심 페이지 구현
+* 사용자 역할별 대시보드:
+
+  * PatientDashboard
+  * CaregiverDashboard
+  * DoctorDashboard
+* FAST 테스트 UI, 메시지 기능, 식단 추천 UI 등 특화 기능 포함
+
+---
+
+### ✔ 라우팅 및 상태 관리
+
+* React Router 기반 **역할별 접근 제어 시스템 구현**
+* SessionStorage 활용한 인증 상태·유저 정보 관리
+* 요청자 관점에서 직관적이고 안정적인 사용자 흐름 제공
+
+---
+
 <img width="948" height="1248" alt="image" src="https://github.com/user-attachments/assets/38372bad-33e0-44b5-8e2d-5e89e20acb3d" />
-
-
-## Use Case 
-Use Case (English Version) 
-The Stroke Prediction System allows a personal user to enter and view health data such as blood pressure, blood sugar, smoking, drinking habits, and physical activity. Based on this information, the system calculates stroke risk and provides warnings and personalized behavioral recommendations. Users also receive reminders for regular check-ups and can view personal reports summarizing recent health changes, contributing factors, and future goals.
-With the user’s consent, a family member or guardian can access the user’s shared health status and receive simultaneous alerts when high risks are detected. This ensures that caregivers are informed in real time and can take necessary actions.
-A doctor can view a patient panel listing all assigned patients, sorted by risk level, and track trends or abnormal indicators. The doctor can also record comments or prescription notes, which are connected with automatic reminders for future tests or follow-ups.
-An administrator manages the system content, including lifestyle guides, checklists, and educational materials. In addition, the administrator configures and updates the alert policies and rules, such as threshold values for risk levels, retest intervals, and cumulative warning standards, ensuring the system remains accurate and effective.
-
-Use Case (한국어 버전)
-뇌졸중 예방 시스템은 개인 사용자가 혈압, 혈당, 흡연 및 음주 습관, 활동량 등의 건강 데이터를 입력하고 조회할 수 있도록 지원한다. 시스템은 입력된 데이터를 기반으로 뇌졸중 위험도를 계산하고, 사용자에게 경고와 맞춤형 행동 권고를 제공한다. 또한 사용자는 정기적인 체크 알림을 받고, 최근 건강 변화, 주요 위험 요인, 개인 목표 등이 포함된 개인 리포트를 열람할 수 있다.
-가족 또는 보호자는 사용자의 동의하에 건강 상태 요약과 경고 이력을 확인할 수 있으며, 고위험 상황이 발생했을 경우 동시에 알림을 수신할 수 있다. 이를 통해 보호자는 실시간으로 상황을 파악하고 필요한 대응을 할 수 있다.
-주치의는 담당 환자의 패널 화면을 통해 환자 목록을 위험도 순으로 확인하고, 추세 및 이상 지표를 모니터링할 수 있다. 또한 환자별로 관리 메모나 처방 메모를 기록할 수 있으며, 이는 다음 검사 권고나 후속 조치를 자동 알림과 연동하여 제공된다.
-관리자는 시스템 내 생활습관 가이드, 체크리스트, 교육 자료 등의 콘텐츠를 관리하고, 위험 임계치, 재측정 대기시간, 경고 누적 기준 등 알림 정책 및 규칙을 설정한다. 이를 통해 시스템은 사용자에게 지속적으로 정확하고 효과적인 서비스를 제공할 수 있다.
-
-
-## Use Case Diagram
-<img width="685" height="616" alt="Use Case diagram" src="https://github.com/user-attachments/assets/4a87f8c0-220a-4ba1-b958-5267b579a18d" />
